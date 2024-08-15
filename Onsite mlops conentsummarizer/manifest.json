@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "Content Summarizer",
+    "version": "1.0",
+    "description": "Summarizes content from Reddit and YouTube, allows highlighting, and stores highlights.",
+    "permissions": [
+        "activeTab",
+        "storage",
+        "identity",
+        "notifications"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": "icon.png"
+    },
+    "sidebar_action": {
+        "default_page": "sidebar.html",
+        "default_icon": "icon.png"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://www.reddit.com/*", "*://www.youtube.com/*"],
+            "js": ["content.js"]
+        }
+    ]
+}
