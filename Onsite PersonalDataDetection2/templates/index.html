@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Data Detection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #747474; 
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            max-width: 1200px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffd900;
+            border: 2px solid #1d1a1a;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #1d1a1a;
+            font-size: 24px;
+        }
+        #uploadForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #fileInput {
+            margin-bottom: 10px;
+            border: 2px solid #1d1a1a;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        button {
+            background-color: #1d1a1a; 
+            color: #ffd900; 
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #333;
+        }
+        #result {
+            white-space: pre-wrap;
+            border: 2px solid #1d1a1a;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #ffd900;
+            color: #1d1a1a;
+            max-width: 100%;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .alert {
+            background-color: #ffcccc;
+            color: #cc0000;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload File for Personal Data Detection</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="fileInput" name="file" required />
+            <button type="submit">Upload</button>
+        </form>
+        <pre id="result"></pre>
+        <div id="error" class="alert" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadForm = document.getElementById('uploadForm');
+            const resultElement = document.getElementById('result');
+            const errorElement = document.getElementById('error');
+
+            uploadForm.onsubmit = async function(e) {
+                e.preventDefault();
+
+                const formData = new FormData();
+                const fileInput = document.getElementById('fileInput');
+                formData.append('file', fileInput.files[0]);
+
+                try {
+                    const response = await fetch('/process-file', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok.');
+                    }
+
+                    const result = await response.json();
+                    errorElement.style.display = 'none';
+
+                    if (result.error) {
+                        errorElement.textContent = 'Error: ' + result.error;
+                        errorElement.style.display = 'block';
+                        resultElement.textContent = '';
+                    } else {
+                        const personalInfo = result.personal_info;
+                        let displayText = '';
+
+                        for (const [infoType, values] of Object.entries(personalInfo)) {
+                            if (values.length > 0) {
+                                displayText += `${infoType}:\n`;
+                                values.forEach(value => displayText += ` - ${value}\n`);
+                            } else {
+                                displayText += `${infoType}: No information found.\n`;
+                            }
+                        }
+
+                        resultElement.textContent = displayText;
+                    }
+                } catch (error) {
+                    errorElement.textContent = 'An error occurred: ' + error.message;
+                    errorElement.style.display = 'block';
+                    resultElement.textContent = '';
+                }
+            };
+        });
+    </script>
+</body>
+</html>
